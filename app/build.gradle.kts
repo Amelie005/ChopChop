@@ -84,4 +84,13 @@ dependencies {
 
     //Test Architecture Components
     testImplementation("androidx.arch.core:core-testing:2.2.0")
+
+    //Navigation
+    implementation("androidx.navigation:navigation-compose:2.8.0")
+
+    //Icons
+    implementation("androidx.compose.material:material-icons-extended")
+
+    //Image Loading
+    implementation("io.coil-kt:coil-compose:2.6.0")
 }
