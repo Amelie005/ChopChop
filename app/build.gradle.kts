@@ -93,4 +93,10 @@ dependencies {
 
     //Image Loading
     implementation("io.coil-kt:coil-compose:2.6.0")
+
+    //Coil Async Image
+    implementation("io.coil-kt.coil3:coil-compose:3.0.0")
+
+    //Runtime Permissions
+    implementation("androidx.activity:activity-compose:1.8.1")
 }

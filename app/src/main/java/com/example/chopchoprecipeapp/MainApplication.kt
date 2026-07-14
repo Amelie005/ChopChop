@@ -15,6 +15,7 @@ class MainApplication : Application() {
     val database by lazy {
         Room.databaseBuilder(this, AppDatabase::class.java, "recipe_database").build()
     }
+
     //repository gets DAO from database
     val repository by lazy {
         RecipeRepository(database.recipeDao())
