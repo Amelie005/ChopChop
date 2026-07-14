@@ -2,11 +2,13 @@ package com.example.chopchoprecipeapp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Custom Palette Colors (Your Choice)
+//Palette colors
 val MeadowGreen = Color(0xFF0D3B15)
 val MustardGreen = Color(0xFFE9D29C)
 val Peach = Color(0xFF727E34)
 val Outerspace = Color(0xFF233E47)
+
+
 val Crimson = Color(0xFF52110F)
 
 // Light theme adjusted colors - better contrast

@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -22,6 +23,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +32,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.chopchoprecipeapp.data.UserSettingsRepository
 import com.example.chopchoprecipeapp.ui.AddRecipeScreen
 import com.example.chopchoprecipeapp.ui.EditRecipeScreen
 import com.example.chopchoprecipeapp.ui.PeerListScreen
@@ -40,8 +43,8 @@ import com.example.chopchoprecipeapp.ui.RecipeViewModel
 import com.example.chopchoprecipeapp.ui.theme.ChopChopRecipeAppTheme
 import com.example.chopchoprecipeapp.wifidirect.RecipeTransferService
 import com.example.chopchoprecipeapp.wifidirect.WiFiDirectManager
+import kotlinx.coroutines.launch
 
-//definition of available screens
 enum class Screen {
     LIST, ADD, DETAIL, EDIT, PEER_LIST, PROFILE
 }
@@ -51,14 +54,24 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            var isDarkMode by remember { mutableStateOf(false) }
-            
-            ChopChopRecipeAppTheme(darkTheme = isDarkMode) {
+            val context = LocalContext.current
+            val repository = remember { UserSettingsRepository(context) }
+            val scope = rememberCoroutineScope()
+
+            // System-Standard als Fallback nutzen, falls noch nichts gespeichert wurde
+            val systemDark = isSystemInDarkTheme()
+            val isDarkModeStored by repository.isDarkMode.collectAsState(initial = systemDark)
+
+            ChopChopRecipeAppTheme(darkTheme = isDarkModeStored) {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     RecipeAppNavigation(
                         modifier = Modifier.padding(innerPadding),
-                        isDarkMode = isDarkMode,
-                        onDarkModeChange = { isDarkMode = it }
+                        isDarkMode = isDarkModeStored,
+                        onDarkModeChange = { enabled ->
+                            scope.launch {
+                                repository.saveDarkMode(enabled)
+                            }
+                        }
                     )
                 }
             }

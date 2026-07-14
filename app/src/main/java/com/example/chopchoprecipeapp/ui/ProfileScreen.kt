@@ -23,50 +23,50 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.chopchoprecipeapp.utils.ImageManager
 
 /**
  * A composable function that displays the user profile screen.
- * @param isDarkMode the current dark mode state
- * @param onDarkModeChange callback when dark mode is toggled
+ *
+ * @param isDarkMode the current dark mode state passed from MainActivity
+ * @param onDarkModeChange callback to update dark mode globally
  * @param modifier the modifier to apply to this layout
+ * @param viewModel the viewmodel instance handling profile screen data
  * @author Amelie Dzierzawa
  */
 @Composable
 fun ProfileScreen(
     isDarkMode: Boolean,
     onDarkModeChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: ProfileViewModel = viewModel()
 ) {
     val context = LocalContext.current
-    var profileImageUri by remember { mutableStateOf<Uri?>(null) }
-    var savedProfileImagePath by remember { mutableStateOf<String?>(null) }
-    var userName by remember { mutableStateOf("") }
+
+    val userName by viewModel.userName.collectAsState()
+    val profileImagePath by viewModel.profileImagePath.collectAsState()
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
             val savedPath = ImageManager.saveImageFromUri(context, uri)
-            savedProfileImagePath = savedPath
-            profileImageUri = uri
+            viewModel.onProfileImageChanged(savedPath)
         }
     }
 
@@ -85,7 +85,7 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Profile Image - Circular
+        //profile image
         Box(
             modifier = Modifier
                 .size(150.dp)
@@ -94,9 +94,9 @@ fun ProfileScreen(
                 .clickable { imagePickerLauncher.launch("image/*") },
             contentAlignment = Alignment.Center
         ) {
-            if (profileImageUri != null || savedProfileImagePath != null) {
+            if (profileImagePath != null) {
                 AsyncImage(
-                    model = profileImageUri ?: savedProfileImagePath,
+                    model = profileImagePath,
                     contentDescription = "Profile Picture",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
@@ -127,7 +127,7 @@ fun ProfileScreen(
         // Name TextField
         OutlinedTextField(
             value = userName,
-            onValueChange = { userName = it },
+            onValueChange = { viewModel.onUserNameChanged(it) },
             label = { Text("Your Name") },
             placeholder = { Text("Enter your name") },
             modifier = Modifier.fillMaxWidth(),
@@ -137,7 +137,7 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Dark Mode Toggle
+        //dark Mode Toggle
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -154,21 +154,12 @@ fun ProfileScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                if (isDarkMode) {
-                    Icon(
-                        imageVector = Icons.Default.DarkMode,
-                        contentDescription = "Dark Mode",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.LightMode,
-                        contentDescription = "Light Mode",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                Icon(
+                    imageVector = if (isDarkMode) Icons.Default.DarkMode else Icons.Default.LightMode,
+                    contentDescription = if (isDarkMode) "Dark Mode" else "Light Mode",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
                 Text(
                     text = if (isDarkMode) "Dark Mode" else "Light Mode",
                     style = MaterialTheme.typography.bodyLarge
@@ -177,9 +168,8 @@ fun ProfileScreen(
 
             Switch(
                 checked = isDarkMode,
-                onCheckedChange = onDarkModeChange
+                onCheckedChange = onDarkModeChange //triggers global state in MainActivity
             )
         }
     }
 }
-
