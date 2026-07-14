@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
@@ -53,6 +54,7 @@ import com.example.chopchoprecipeapp.data.Recipe
 fun RecipeDetailScreen(
     recipe: Recipe,
     onBackClick: () -> Unit,
+    onEditClick: () -> Unit,
     onDeleteClick: (Recipe) -> Unit,
     onShareClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -97,6 +99,9 @@ fun RecipeDetailScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = onEditClick) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit")
+                    }
                     IconButton(onClick = onShareClick) {
                         Icon(Icons.Default.Share, contentDescription = "Share")
                     }
@@ -212,6 +217,25 @@ fun RecipeDetailScreen(
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
+
+                //edit button
+                Button(
+                    onClick = onEditClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Edit Recipe")
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
 
                 //delete button
                 Button(

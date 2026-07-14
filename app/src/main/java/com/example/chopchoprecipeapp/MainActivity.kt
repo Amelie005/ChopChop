@@ -30,6 +30,9 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.chopchoprecipeapp.ui.AddRecipeScreen
 import com.example.chopchoprecipeapp.ui.PeerListScreen
+import com.example.chopchoprecipeapp.ui.AddRecipeScreen
+import com.example.chopchoprecipeapp.ui.EditRecipeScreen
+import com.example.chopchoprecipeapp.ui.PeerListScreen
 import com.example.chopchoprecipeapp.ui.RecipeDetailScreen
 import com.example.chopchoprecipeapp.ui.RecipeListScreen
 import com.example.chopchoprecipeapp.ui.RecipeViewModel
@@ -39,7 +42,7 @@ import com.example.chopchoprecipeapp.wifidirect.WiFiDirectManager
 
 //definition of available screens
 enum class Screen {
-    LIST, ADD, DETAIL, PEER_LIST
+    LIST, ADD, DETAIL, EDIT, PEER_LIST
 }
 
 class MainActivity : ComponentActivity() {
@@ -89,8 +92,8 @@ fun RecipeAppNavigation(modifier: Modifier) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            //only show bottom bar when not on detail or peer list screen
-            if (currentScreen != Screen.DETAIL && currentScreen != Screen.PEER_LIST) {
+            //only show bottom bar when not on detail, edit or peer list screen
+            if (currentScreen != Screen.DETAIL && currentScreen != Screen.EDIT && currentScreen != Screen.PEER_LIST) {
                 NavigationBar {
                     NavigationBarItem(
                         selected = currentScreen == Screen.LIST,
@@ -139,6 +142,9 @@ fun RecipeAppNavigation(modifier: Modifier) {
                                 currentScreen = Screen.LIST
                                 recipeViewModel.clearSelectedRecipe()
                             },
+                            onEditClick = {
+                                currentScreen = Screen.EDIT
+                            },
                             onDeleteClick = { recipe ->
                                 recipeViewModel.deleteRecipe(recipe)
                                 currentScreen = Screen.LIST
@@ -146,6 +152,22 @@ fun RecipeAppNavigation(modifier: Modifier) {
                             },
                             onShareClick = {
                                 currentScreen = Screen.PEER_LIST
+                            }
+                        )
+                    }
+                }
+
+                Screen.EDIT -> {
+                    val selectedRecipe by recipeViewModel.selectedRecipe.collectAsState()
+                    if (selectedRecipe != null) {
+                        EditRecipeScreen(
+                            recipe = selectedRecipe!!,
+                            viewModel = recipeViewModel,
+                            onRecipeSaved = {
+                                currentScreen = Screen.DETAIL
+                            },
+                            onBackClick = {
+                                currentScreen = Screen.DETAIL
                             }
                         )
                     }

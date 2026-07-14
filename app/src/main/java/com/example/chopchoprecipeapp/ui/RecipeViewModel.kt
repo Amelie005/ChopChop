@@ -72,6 +72,14 @@ class RecipeViewModel(
         }
     }
 
+    fun editRecipe(recipe: Recipe) {
+        viewModelScope.launch {
+            repository.insert(recipe)
+            // Reload the recipe to update the UI with the saved changes
+            _selectedRecipe.value = recipe
+        }
+    }
+
     fun deleteRecipe(recipe: Recipe) {
         viewModelScope.launch {
             repository.delete(recipe)
@@ -105,4 +113,3 @@ class RecipeViewModel(
         transferService.cleanup()
     }
 }
-
