@@ -18,15 +18,21 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
@@ -46,8 +52,8 @@ import androidx.compose.ui.unit.dp
 import com.example.chopchoprecipeapp.data.Recipe
 
 /**
- * A composable function that displays recipes in a list.
- * @param recipes the list of recipes to display
+ * A composable function that displays recipes in a searchable list.
+ * @param viewModel the view model containing all recipes
  * @param onRecipeClick a lambda function that is called when a recipe is clicked
  * @param modifier the modifier to apply to this layout
  * @author Amelie Dzierzawa
@@ -60,26 +66,172 @@ fun RecipeListScreen(
     modifier: Modifier = Modifier
 ) {
     val recipes by viewModel.allRecipes.collectAsState()
+    var searchQuery by remember { mutableStateOf("") }
+    var showFilterDialog by remember { mutableStateOf(false) }
+    var selectedTags by remember { mutableStateOf(setOf<String>()) }
+
+    // Get all unique tags from recipes
+    val allTags = remember(recipes) {
+        recipes.flatMap { it.tags }.distinct().sorted()
+    }
 
     Box(modifier = modifier
         .fillMaxSize()
         .padding(16.dp)) {
-        if (recipes.isEmpty()) {
-            Text(
-                text = "No recipes added yet!",
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.align(Alignment.Center)
-            )
-        } else {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Search and Filter Bar
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                items(recipes, key = { it.id }) { recipe ->
-                    RecipeCardWithSwipe(
-                        recipe = recipe,
-                        onClick = { onRecipeClick(recipe) },
-                        onDelete = { viewModel.deleteRecipe(recipe) }
+                // Search TextField
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text("Search recipes") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { searchQuery = "" }) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Clear search",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    shape = MaterialTheme.shapes.large
+                )
+
+                // Filter Button
+                IconButton(
+                    onClick = { showFilterDialog = true },
+                    modifier = Modifier
+                        .size(56.dp)
+                        .padding(4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.FilterList,
+                        contentDescription = "Filter by tags",
+                        tint = if (selectedTags.isNotEmpty())
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(24.dp)
                     )
+                }
+            }
+
+            // Filter Dialog
+            if (showFilterDialog) {
+                AlertDialog(
+                    onDismissRequest = { showFilterDialog = false },
+                    title = { Text("Filter by Tags") },
+                    text = {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                        ) {
+                            if (allTags.isEmpty()) {
+                                Text("No tags available")
+                            } else {
+                                allTags.forEach { tag ->
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Checkbox(
+                                            checked = tag in selectedTags,
+                                            onCheckedChange = { isChecked ->
+                                                selectedTags = if (isChecked) {
+                                                    selectedTags + tag
+                                                } else {
+                                                    selectedTags - tag
+                                                }
+                                            }
+                                        )
+                                        Text(
+                                            text = tag,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .padding(start = 8.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { showFilterDialog = false }) {
+                            Text("Done")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = {
+                            selectedTags = setOf()
+                            showFilterDialog = false
+                        }) {
+                            Text("Clear All")
+                        }
+                    }
+                )
+            }
+
+            // Filter recipes based on search query and selected tags
+            val filteredRecipes = recipes.filter { recipe ->
+                val matchesSearch = if (searchQuery.isEmpty()) {
+                    true
+                } else {
+                    recipe.name.contains(searchQuery, ignoreCase = true)
+                }
+
+                val matchesTags = if (selectedTags.isEmpty()) {
+                    true
+                } else {
+                    selectedTags.any { tag -> tag in recipe.tags }
+                }
+
+                matchesSearch && matchesTags
+            }
+
+            if (recipes.isEmpty()) {
+                Text(
+                    text = "No recipes added yet!",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+            } else if (filteredRecipes.isEmpty()) {
+                Text(
+                    text = "No recipes match your criteria",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(filteredRecipes, key = { it.id }) { recipe ->
+                        RecipeCardWithSwipe(
+                            recipe = recipe,
+                            onClick = { onRecipeClick(recipe) },
+                            onDelete = { viewModel.deleteRecipe(recipe) }
+                        )
+                    }
                 }
             }
         }

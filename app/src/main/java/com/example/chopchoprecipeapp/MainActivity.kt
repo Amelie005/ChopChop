@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -22,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
@@ -29,10 +31,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.chopchoprecipeapp.ui.AddRecipeScreen
-import com.example.chopchoprecipeapp.ui.PeerListScreen
-import com.example.chopchoprecipeapp.ui.AddRecipeScreen
 import com.example.chopchoprecipeapp.ui.EditRecipeScreen
 import com.example.chopchoprecipeapp.ui.PeerListScreen
+import com.example.chopchoprecipeapp.ui.ProfileScreen
 import com.example.chopchoprecipeapp.ui.RecipeDetailScreen
 import com.example.chopchoprecipeapp.ui.RecipeListScreen
 import com.example.chopchoprecipeapp.ui.RecipeViewModel
@@ -42,7 +43,7 @@ import com.example.chopchoprecipeapp.wifidirect.WiFiDirectManager
 
 //definition of available screens
 enum class Screen {
-    LIST, ADD, DETAIL, EDIT, PEER_LIST
+    LIST, ADD, DETAIL, EDIT, PEER_LIST, PROFILE
 }
 
 class MainActivity : ComponentActivity() {
@@ -50,9 +51,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            ChopChopRecipeAppTheme {
+            var isDarkMode by remember { mutableStateOf(false) }
+            
+            ChopChopRecipeAppTheme(darkTheme = isDarkMode) {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    RecipeAppNavigation(modifier = Modifier.padding(innerPadding))
+                    RecipeAppNavigation(
+                        modifier = Modifier.padding(innerPadding),
+                        isDarkMode = isDarkMode,
+                        onDarkModeChange = { isDarkMode = it }
+                    )
                 }
             }
         }
@@ -60,7 +67,11 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun RecipeAppNavigation(modifier: Modifier) {
+fun RecipeAppNavigation(
+    modifier: Modifier,
+    isDarkMode: Boolean,
+    onDarkModeChange: (Boolean) -> Unit
+) {
     val context = LocalContext.current
 
     RequestWiFiDirectPermissions()
@@ -106,6 +117,12 @@ fun RecipeAppNavigation(modifier: Modifier) {
                         onClick = { currentScreen = Screen.ADD },
                         icon = { Icon(Icons.Default.Add, contentDescription = "Add") },
                         label = { Text("New") }
+                    )
+                    NavigationBarItem(
+                        selected = currentScreen == Screen.PROFILE,
+                        onClick = { currentScreen = Screen.PROFILE },
+                        icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
+                        label = { Text("Me") }
                     )
                 }
             }
@@ -184,6 +201,13 @@ fun RecipeAppNavigation(modifier: Modifier) {
                             }
                         )
                     }
+                }
+
+                Screen.PROFILE -> {
+                    ProfileScreen(
+                        isDarkMode = isDarkMode,
+                        onDarkModeChange = onDarkModeChange
+                    )
                 }
             }
         }
