@@ -62,7 +62,7 @@ class MainActivity : ComponentActivity() {
             val systemDark = isSystemInDarkTheme()
             val isDarkModeStored by repository.isDarkMode.collectAsState(initial = systemDark)
 
-            ChopChopRecipeAppTheme(darkTheme = isDarkModeStored) {
+            ChopChopRecipeAppTheme(darkTheme = isDarkModeStored, dynamicColor = false) {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     RecipeAppNavigation(
                         modifier = Modifier.padding(innerPadding),

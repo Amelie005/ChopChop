@@ -2,31 +2,34 @@ package com.example.chopchoprecipeapp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-//Palette colors
-val MeadowGreen = Color(0xFF0D3B15)
-val MustardGreen = Color(0xFFE9D29C)
-val Peach = Color(0xFF727E34)
-val Outerspace = Color(0xFF233E47)
+/**
+ * Color palette definitions for the ChopChop App.
+ * Uses green-themed color spectrum .
+ * @author Amelie Dzierzawa
+ */
 
+//Global Accent Colors
+val SageLight = Color(0xFF3A6342)
+val SageMedium = Color(0xFF587E60)
+val SageDark = Color(0xFF24402A)
+val MutedRed = Color(0xFF9C3A3A)
 
-val Crimson = Color(0xFF52110F)
+//Light Theme Palette
+val PrimaryLight = SageLight
+val SecondaryLight = SageMedium
+val TertiaryLight = SageDark
+val BackgroundLight = Color(0xFFF7FAF7)
+val SurfaceLight = Color(0xFFEAF0EB)
+val OnPrimaryLight = Color(0xFFFFFFFF)
+val OnBackgroundLight = Color(0xFF111E14)
+val OnSurfaceLight = Color(0xFF1D2F21)
 
-//light theme
-val PrimaryLight = Color(0xFF0D3B15)  //Meadow Green for buttons
-val SecondaryLight = Color(0xFF727E34) //Peach for accents
-val TertiaryLight = Color(0xFF233E47)  //Outerspace for details
-val BackgroundLight = Color(0xFFFCFBFA) //Almost white
-val SurfaceLight = Color(0xFFF5F1ED)  //Light beige
-val OnPrimaryLight = Color(0xFFFFFFFF) //White text
-val OnBackgroundLight = Color(0xFF1C1C1C) //Near black text
-val OnSurfaceLight = Color(0xFF233E47) //Dark text
-
-//dark theme
-val PrimaryDark = Color(0xFFE9D29C)  //Mustard Green
-val SecondaryDark = Color(0xFF8FA348) //Lighter Peach
-val TertiaryDark = Color(0xFF7BA5B8) //Lighter blue-grey
-val BackgroundDark = Color(0xFF0F1820) //Very dark
-val SurfaceDark = Color(0xFF1A2B33)   //Dark slate
-val OnPrimaryDark = Color(0xFF0D3B15) //Dark text on mustard
-val OnBackgroundDark = Color(0xFFF5F5F5) //Light text
-val OnSurfaceDark = Color(0xFFE9D29C) //Light yellow text
+//Dark Theme Palette
+val PrimaryDark = Color(0xFFA2C9AB)
+val SecondaryDark = Color(0xFF7EA486)
+val TertiaryDark = Color(0xFFA4C3B2)
+val BackgroundDark = Color(0xFF0B130E)
+val SurfaceDark = Color(0xFF15241B)
+val OnPrimaryDark = Color(0xFF0B2512)
+val OnBackgroundDark = Color(0xFFEAF3EC)
+val OnSurfaceDark = Color(0xFFB8D5BF)
