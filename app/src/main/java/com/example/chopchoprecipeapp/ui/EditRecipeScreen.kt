@@ -7,7 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -98,11 +97,13 @@ fun EditRecipeScreen(
                         unit = parts[1],
                         name = parts.drop(2).joinToString(" ")
                     )
+
                     parts.size == 2 -> IngredientInput(
                         amount = parts[0],
                         unit = "g",
                         name = parts.drop(1).joinToString(" ")
                     )
+
                     else -> IngredientInput(name = ingredientString)
                 }
             }.toTypedArray()
@@ -209,7 +210,10 @@ fun EditRecipeScreen(
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
-                                Text("Choose Image From Gallery", style = MaterialTheme.typography.bodyMedium)
+                                Text(
+                                    "Choose Image From Gallery",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
                             }
                         }
                     }
@@ -337,7 +341,11 @@ fun EditRecipeScreen(
                                     value = ingredient.unit,
                                     onValueChange = {},
                                     readOnly = true,
-                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                                    trailingIcon = {
+                                        ExposedDropdownMenuDefaults.TrailingIcon(
+                                            expanded = expanded
+                                        )
+                                    },
                                     colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
                                     modifier = Modifier
                                         .menuAnchor()
@@ -353,7 +361,8 @@ fun EditRecipeScreen(
                                         DropdownMenuItem(
                                             text = { Text(unitOption) },
                                             onClick = {
-                                                ingredientsList[index] = ingredient.copy(unit = unitOption)
+                                                ingredientsList[index] =
+                                                    ingredient.copy(unit = unitOption)
                                                 expanded = false
                                             }
                                         )
@@ -364,7 +373,9 @@ fun EditRecipeScreen(
                             //Ingredient name
                             OutlinedTextField(
                                 value = ingredient.name,
-                                onValueChange = { ingredientsList[index] = ingredient.copy(name = it) },
+                                onValueChange = {
+                                    ingredientsList[index] = ingredient.copy(name = it)
+                                },
                                 placeholder = { Text("Ingredient") },
                                 modifier = Modifier
                                     .weight(1.5f)
@@ -463,8 +474,10 @@ fun EditRecipeScreen(
                             val filteredIngredients = ingredientsList
                                 .filter { it.name.isNotBlank() }
                                 .map { input ->
-                                    val amountPart = if (input.amount.isNotBlank()) "${input.amount} " else ""
-                                    val unitPart = if (input.unit.isNotBlank() && input.amount.isNotBlank()) "${input.unit} " else ""
+                                    val amountPart =
+                                        if (input.amount.isNotBlank()) "${input.amount} " else ""
+                                    val unitPart =
+                                        if (input.unit.isNotBlank() && input.amount.isNotBlank()) "${input.unit} " else ""
                                     "$amountPart$unitPart${input.name}".trim()
                                 }
 

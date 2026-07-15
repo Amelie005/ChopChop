@@ -225,7 +225,10 @@ class WiFiDirectManager(private val context: Context) {
     internal fun updateConnectionInfo(info: WifiP2pInfo) {
         _connectionInfo.value = info
         _isConnected.value = info.groupFormed
-        Log.d(TAG, "🔌 Connection: groupFormed=${info.groupFormed}, GO=${info.isGroupOwner}, IP=${info.groupOwnerAddress?.hostAddress}")
+        Log.d(
+            TAG,
+            "🔌 Connection: groupFormed=${info.groupFormed}, GO=${info.isGroupOwner}, IP=${info.groupOwnerAddress?.hostAddress}"
+        )
     }
 
     /**
@@ -234,7 +237,10 @@ class WiFiDirectManager(private val context: Context) {
      */
     internal fun updateThisDevice(device: WifiP2pDevice) {
         _thisDevice.value = device
-        Log.d(TAG, "This device: ${device.deviceName} (${device.deviceAddress}) Status=${device.status}")
+        Log.d(
+            TAG,
+            "This device: ${device.deviceName} (${device.deviceAddress}) Status=${device.status}"
+        )
     }
 
     /**

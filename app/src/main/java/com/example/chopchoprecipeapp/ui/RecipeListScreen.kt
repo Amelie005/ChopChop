@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -80,9 +79,11 @@ fun RecipeListScreen(
         recipes.flatMap { it.tags }.distinct().sorted()
     }
 
-    Box(modifier = modifier
-        .fillMaxSize()
-        .padding(16.dp)) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
         Column(modifier = Modifier.fillMaxSize()) {
             //Search and Filter Bar
             Row(
@@ -451,7 +452,12 @@ fun RecipeCard(
                         recipe.tags.forEach { tag ->
                             SuggestionChip(
                                 onClick = {},
-                                label = { Text(text = tag, style = MaterialTheme.typography.labelSmall) }
+                                label = {
+                                    Text(
+                                        text = tag,
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                }
                             )
                         }
                     }

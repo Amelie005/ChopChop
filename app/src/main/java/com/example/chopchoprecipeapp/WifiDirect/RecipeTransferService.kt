@@ -95,7 +95,10 @@ class RecipeTransferService(private val context: Context) {
                                         if (recipe != null) {
                                             _receivedRecipe.value = recipe
                                             _transferStatus.value = TransferStatus.ReceivedSuccess
-                                            Log.d(TAG, "Recipe successfully parsed and saved: ${recipe.name}")
+                                            Log.d(
+                                                TAG,
+                                                "Recipe successfully parsed and saved: ${recipe.name}"
+                                            )
                                         } else {
                                             _transferStatus.value = TransferStatus.ErrorInvalidData
                                         }

@@ -7,7 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -169,7 +168,10 @@ fun AddRecipeScreen(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text("Choose Image From Gallery", style = MaterialTheme.typography.bodyMedium)
+                            Text(
+                                "Choose Image From Gallery",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
                         }
                     }
                 }
@@ -313,7 +315,8 @@ fun AddRecipeScreen(
                                     DropdownMenuItem(
                                         text = { Text(unitOption) },
                                         onClick = {
-                                            ingredientsList[index] = ingredient.copy(unit = unitOption)
+                                            ingredientsList[index] =
+                                                ingredient.copy(unit = unitOption)
                                             expanded = false
                                         }
                                     )
@@ -424,8 +427,10 @@ fun AddRecipeScreen(
                         val filteredIngredients = ingredientsList
                             .filter { it.name.isNotBlank() }
                             .map { input ->
-                                val amountPart = if (input.amount.isNotBlank()) "${input.amount} " else ""
-                                val unitPart = if (input.unit.isNotBlank() && input.amount.isNotBlank()) "${input.unit} " else ""
+                                val amountPart =
+                                    if (input.amount.isNotBlank()) "${input.amount} " else ""
+                                val unitPart =
+                                    if (input.unit.isNotBlank() && input.amount.isNotBlank()) "${input.unit} " else ""
                                 "$amountPart$unitPart${input.name}".trim()
                             }
 
