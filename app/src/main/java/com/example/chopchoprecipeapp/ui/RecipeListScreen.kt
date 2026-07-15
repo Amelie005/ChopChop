@@ -42,6 +42,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -261,12 +262,14 @@ fun RecipeListScreen(
     }
 }
 
+
 /**
- * A composable function that displays a recipe card with a swipe-to-delete feature.
- * @param recipe the recipe to display
- * @param onClick a lambda function that is called when the recipe card is clicked
- * @param onDelete a lambda function that is called when the delete button is clicked
- * @author Amelie Dzierzawa
+ * Wraps a RecipeCard with swipe-to-dismiss functionality.
+ * Triggers a delete confirmation dialog when swiped from left to right.
+ * Swiping from right to left is disabled to prevent accidental moves.
+ * @param recipe The recipe data to display and potentially delete.
+ * @param onClick Callback triggered when the card is clicked.
+ * @param onDelete Callback triggered when the user confirms recipe deletion.
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -276,18 +279,27 @@ fun RecipeCardWithSwipe(
     onDelete: () -> Unit
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
+
+    // Manage state for the swipe-to-dismiss box
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { dismissValue ->
             if (dismissValue == SwipeToDismissBoxValue.StartToEnd) {
                 showDeleteDialog = true
-                false
+                false //Return false to prevent automatic dismissal before confirmation
             } else {
                 false
             }
         }
     )
 
-    //delete confirmation Dialog
+    //Reset swipe position if dialog is dismissed
+    LaunchedEffect(showDeleteDialog) {
+        if (!showDeleteDialog && dismissState.currentValue != SwipeToDismissBoxValue.Settled) {
+            dismissState.reset()
+        }
+    }
+
+    //Delete confirmation dialog
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -314,9 +326,11 @@ fun RecipeCardWithSwipe(
         )
     }
 
-    //swipe to delete
+    //Swipe to delete container
     SwipeToDismissBox(
         state = dismissState,
+        enableDismissFromStartToEnd = true,
+        enableDismissFromEndToStart = false,
         backgroundContent = {
             Box(
                 modifier = Modifier
