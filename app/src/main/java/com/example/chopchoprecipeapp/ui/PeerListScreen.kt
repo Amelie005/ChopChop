@@ -108,10 +108,14 @@ fun PeerListScreen(
         }
     }
 
-    // Navigate back upon successful transfer
+    // Ensure isConnecting is reset if an error occurs
     LaunchedEffect(transferStatus) {
-        if (transferStatus == TransferStatus.SentSuccess) {
-            onBackClick()
+        when (transferStatus) {
+            TransferStatus.SentSuccess -> onBackClick()
+            TransferStatus.SentFailed, TransferStatus.ErrorConnectionLost, TransferStatus.ErrorTimeout -> {
+                isConnecting = false // Reset UI state so user can retry
+            }
+            else -> {}
         }
     }
 

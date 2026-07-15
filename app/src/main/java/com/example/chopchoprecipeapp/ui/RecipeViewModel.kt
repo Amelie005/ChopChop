@@ -76,7 +76,7 @@ class RecipeViewModel(
                                 "We are Client. GO IP is: $ownerAddress. Initiating Handshake..."
                             )
                             transferService.setPeerIpAddress(ownerAddress)
-                            //Let the group owner know our IP address
+                            //let the group owner know our IP address
                             transferService.sendHandshake(ownerAddress)
                         }
                     }

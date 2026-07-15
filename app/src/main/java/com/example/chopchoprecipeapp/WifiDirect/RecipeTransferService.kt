@@ -31,6 +31,7 @@ class RecipeTransferService(private val context: Context) {
         private const val HANDSHAKE_MSG = "CHOP_CHOP_HANDSHAKE"
     }
 
+
     private val _transferStatus = MutableStateFlow<TransferStatus>(TransferStatus.Idle)
     val transferStatus: StateFlow<TransferStatus> = _transferStatus.asStateFlow()
 
@@ -168,6 +169,8 @@ class RecipeTransferService(private val context: Context) {
             }
         }.start()
     }
+
+
 
     /**
      * Sends a recipe to the connected peer.
