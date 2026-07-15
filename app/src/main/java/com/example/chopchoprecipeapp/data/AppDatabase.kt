@@ -11,7 +11,7 @@ import androidx.room.TypeConverters
  * @author Amelie Dzierzawa
  */
 @Database(entities = [Recipe::class], version = 1, exportSchema = false)
-@TypeConverters(Converters::class)
+@TypeConverters(Converters::class) //converters the database needs to have/know
 abstract class AppDatabase : RoomDatabase() {
     abstract fun recipeDao(): RecipeDao
 

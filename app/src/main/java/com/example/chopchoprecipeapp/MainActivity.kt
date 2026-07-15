@@ -58,7 +58,7 @@ class MainActivity : ComponentActivity() {
             val repository = remember { UserSettingsRepository(context) }
             val scope = rememberCoroutineScope()
 
-            // System-Standard als Fallback nutzen, falls noch nichts gespeichert wurde
+            //use system standard as fallback
             val systemDark = isSystemInDarkTheme()
             val isDarkModeStored by repository.isDarkMode.collectAsState(initial = systemDark)
 

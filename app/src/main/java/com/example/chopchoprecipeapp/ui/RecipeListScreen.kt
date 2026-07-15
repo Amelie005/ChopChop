@@ -21,7 +21,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -48,7 +50,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.example.chopchoprecipeapp.data.Recipe
 
 /**
@@ -70,7 +74,7 @@ fun RecipeListScreen(
     var showFilterDialog by remember { mutableStateOf(false) }
     var selectedTags by remember { mutableStateOf(setOf<String>()) }
 
-    // Get all unique tags from recipes
+    //Get all unique tags from recipes
     val allTags = remember(recipes) {
         recipes.flatMap { it.tags }.distinct().sorted()
     }
@@ -79,7 +83,7 @@ fun RecipeListScreen(
         .fillMaxSize()
         .padding(16.dp)) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Search and Filter Bar
+            //Search and Filter Bar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -87,7 +91,7 @@ fun RecipeListScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Search TextField
+                //Search TextField
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
@@ -115,7 +119,7 @@ fun RecipeListScreen(
                     shape = MaterialTheme.shapes.large
                 )
 
-                // Filter Button
+                //Filter button
                 IconButton(
                     onClick = { showFilterDialog = true },
                     modifier = Modifier
@@ -134,7 +138,7 @@ fun RecipeListScreen(
                 }
             }
 
-            // Filter Dialog
+            //Filter dialog
             if (showFilterDialog) {
                 AlertDialog(
                     onDismissRequest = { showFilterDialog = false },
@@ -192,7 +196,7 @@ fun RecipeListScreen(
                 )
             }
 
-            // Filter recipes based on search query and selected tags
+            //Filter recipes based on search query and selected tags
             val filteredRecipes = recipes.filter { recipe ->
                 val matchesSearch = if (searchQuery.isEmpty()) {
                     true
@@ -217,7 +221,7 @@ fun RecipeListScreen(
                 )
             } else if (filteredRecipes.isEmpty()) {
                 Text(
-                    text = "No recipes match your criteria",
+                    text = "No recipes match your criteria!",
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
@@ -225,6 +229,25 @@ fun RecipeListScreen(
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    //Recipe count as first item
+                    item {
+                        if (filteredRecipes.isNotEmpty()) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "${filteredRecipes.size} recipe${if (filteredRecipes.size != 1) "s" else ""}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+
+                    //after that the recipes
                     items(filteredRecipes, key = { it.id }) { recipe ->
                         RecipeCardWithSwipe(
                             recipe = recipe,
@@ -238,6 +261,13 @@ fun RecipeListScreen(
     }
 }
 
+/**
+ * A composable function that displays a recipe card with a swipe-to-delete feature.
+ * @param recipe the recipe to display
+ * @param onClick a lambda function that is called when the recipe card is clicked
+ * @param onDelete a lambda function that is called when the delete button is clicked
+ * @author Amelie Dzierzawa
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun RecipeCardWithSwipe(
@@ -284,6 +314,7 @@ fun RecipeCardWithSwipe(
         )
     }
 
+    //swipe to delete
     SwipeToDismissBox(
         state = dismissState,
         backgroundContent = {
@@ -312,6 +343,12 @@ fun RecipeCardWithSwipe(
     )
 }
 
+/**
+ * A composable function that displays a recipe card.
+ * @param recipe the recipe to display
+ * @param onClick a lambda function that is called when the recipe card is clicked
+ * @author Amelie Dzierzawa
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun RecipeCard(
@@ -327,44 +364,83 @@ fun RecipeCard(
         )
     ) {
         Column(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         ) {
-            //name on the left, rating on the right
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = recipe.name,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.weight(1f)
+            //Recipe image
+            if (!recipe.imageUri.isNullOrEmpty()) {
+                AsyncImage(
+                    model = recipe.imageUri,
+                    contentDescription = recipe.name,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp),
+                    contentScale = ContentScale.Crop
                 )
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "☆", style = MaterialTheme.typography.bodyLarge)
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = recipe.rating.toString(),
-                        style = MaterialTheme.typography.titleMedium
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp)
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PhotoCamera,
+                        contentDescription = "No image",
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            //tags as chips in a row
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth()
             ) {
-                recipe.tags.forEach { tag ->
-                    SuggestionChip(
-                        onClick = {},
-                        label = { Text(text = tag) }
+                //Name and Rating
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = recipe.name,
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.weight(1f)
                     )
+
+                    // Stars
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        repeat(5) { index ->
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = "Star",
+                                tint = if (index < recipe.rating)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.surfaceVariant,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                //Tags
+                if (recipe.tags.isNotEmpty()) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        recipe.tags.forEach { tag ->
+                            SuggestionChip(
+                                onClick = {},
+                                label = { Text(text = tag, style = MaterialTheme.typography.labelSmall) }
+                            )
+                        }
+                    }
                 }
             }
         }

@@ -140,7 +140,7 @@ fun RecipeDetailScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                // Rating
+                //Rating
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -162,7 +162,7 @@ fun RecipeDetailScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Tags
+                //Tags
                 if (recipe.tags.isNotEmpty()) {
                     Text(
                         "Tags",
@@ -184,7 +184,7 @@ fun RecipeDetailScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                //ingredients
+                //Ingredients
                 Text(
                     "Ingredients",
                     style = MaterialTheme.typography.titleSmall
@@ -205,7 +205,7 @@ fun RecipeDetailScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                //instructions
+                //Instructions
                 Text(
                     "Instructions",
                     style = MaterialTheme.typography.titleSmall
@@ -218,7 +218,7 @@ fun RecipeDetailScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                //edit button
+                //Edit button
                 Button(
                     onClick = onEditClick,
                     modifier = Modifier.fillMaxWidth(),

@@ -20,11 +20,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * Manages WiFi Direct (P2P) connections and device discovery.
+ * Manages WiFi direct (P2P) connections and device discovery.
+ * @param context The application context.
  * @author Amelie Dzierzawa
  */
 class WiFiDirectManager(private val context: Context) {
 
+    /**
+     * Constants for logging and debugging.
+     */
     companion object {
         private const val TAG = "WiFiDirect"
     }
@@ -46,7 +50,14 @@ class WiFiDirectManager(private val context: Context) {
     private val _isConnected = MutableStateFlow(false)
     val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
 
+    private val _thisDevice = MutableStateFlow<WifiP2pDevice?>(null)
+    val thisDevice: StateFlow<WifiP2pDevice?> = _thisDevice.asStateFlow()
+
     private val broadcastReceiver = WiFiDirectBroadcastReceiver(this)
+
+    /**
+     * Intent filter for the broadcast receiver
+     */
     private val intentFilter = IntentFilter().apply {
         addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION)
         addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION)
@@ -56,6 +67,9 @@ class WiFiDirectManager(private val context: Context) {
 
     private var discoveryRunnable: Runnable? = null
 
+    /**
+     * Initializes the WiFi Direct manager.
+     */
     init {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             context.registerReceiver(broadcastReceiver, intentFilter, Context.RECEIVER_EXPORTED)
@@ -66,9 +80,9 @@ class WiFiDirectManager(private val context: Context) {
         Log.d(TAG, "WiFiDirectManager initialized")
     }
 
-
     /**
-     * Starts WiFi Direct peer discovery (periodically).
+     * Starts the peer discovery process.
+     *
      */
     fun discoverPeers() {
         if (ActivityCompat.checkSelfPermission(
@@ -94,6 +108,7 @@ class WiFiDirectManager(private val context: Context) {
             }
         })
 
+        //restart periodically
         discoveryRunnable = Runnable {
             if (_isDiscovering.value) {
                 Log.d(TAG, "Restarting discovery (periodic)")
@@ -110,7 +125,7 @@ class WiFiDirectManager(private val context: Context) {
     }
 
     /**
-     * Stops WiFi Direct peer discovery.
+     * Stops the peer discovery process.
      */
     fun stopDiscovery() {
         _isDiscovering.value = false
@@ -136,7 +151,8 @@ class WiFiDirectManager(private val context: Context) {
     }
 
     /**
-     * Connects to a specific peer device.
+     * Connects to the specified WiFi Direct device.
+     * @param device The device to connect to.
      */
     fun connectToPeer(device: WifiP2pDevice) {
         if (ActivityCompat.checkSelfPermission(
@@ -144,6 +160,7 @@ class WiFiDirectManager(private val context: Context) {
                 android.Manifest.permission.ACCESS_FINE_LOCATION
             ) != android.content.pm.PackageManager.PERMISSION_GRANTED
         ) {
+            Log.e(TAG, "Missing LOCATION permission for connect!")
             return
         }
 
@@ -151,21 +168,21 @@ class WiFiDirectManager(private val context: Context) {
             deviceAddress = device.deviceAddress
         }
 
-        Log.d(TAG, "Connecting to ${device.deviceName} (${device.deviceAddress})")
+        Log.d(TAG, "ATTEMPTING CONNECTION to ${device.deviceName} (${device.deviceAddress})")
 
         wifiP2pManager.connect(channel, config, object : WifiP2pManager.ActionListener {
             override fun onSuccess() {
-                Log.d(TAG, "Connect request sent")
+                Log.d(TAG, "Connect request SENT successfully")
             }
 
             override fun onFailure(reasonCode: Int) {
-                Log.e(TAG, "Connect failed: reason code $reasonCode")
+                Log.e(TAG, "Connect FAILED: reason code $reasonCode")
             }
         })
     }
 
     /**
-     * Disconnects from current peer.
+     * Disconnects from the current WiFi Direct connection.
      */
     fun disconnect() {
         if (ActivityCompat.checkSelfPermission(
@@ -190,30 +207,38 @@ class WiFiDirectManager(private val context: Context) {
     }
 
     /**
-     * Updates peer list (called by BroadcastReceiver).
+     * Updates the list of available WiFi Direct peers.
+     * @param peers The list of available peers.
      */
     internal fun updatePeerList(peers: WifiP2pDeviceList) {
         _availablePeers.value = peers.deviceList.toList()
-        Log.d(TAG, "Peer list updated: ${peers.deviceList.size} devices found")
+        Log.d(TAG, "📱 Peer list updated: ${peers.deviceList.size} devices")
         peers.deviceList.forEach { device ->
-            Log.d(TAG, "  - ${device.deviceName} (${device.deviceAddress})")
+            Log.d(TAG, "  - ${device.deviceName} (${device.deviceAddress}) Status=${device.status}")
         }
     }
 
     /**
-     * Updates connection info (called by BroadcastReceiver).
+     * Updates the connection information.
+     * @param info The connection information.
      */
     internal fun updateConnectionInfo(info: WifiP2pInfo) {
         _connectionInfo.value = info
         _isConnected.value = info.groupFormed
-        Log.d(
-            TAG,
-            "Connection info updated: groupFormed=${info.groupFormed}, GO=${info.isGroupOwner}"
-        )
+        Log.d(TAG, "🔌 Connection: groupFormed=${info.groupFormed}, GO=${info.isGroupOwner}, IP=${info.groupOwnerAddress?.hostAddress}")
     }
 
     /**
-     * Stops discovery and cleanup.
+     * Updates the device information.
+     * @param device The device information.
+     */
+    internal fun updateThisDevice(device: WifiP2pDevice) {
+        _thisDevice.value = device
+        Log.d(TAG, "This device: ${device.deviceName} (${device.deviceAddress}) Status=${device.status}")
+    }
+
+    /**
+     * Cleans up resources.
      */
     fun cleanup() {
         stopDiscovery()
@@ -221,31 +246,50 @@ class WiFiDirectManager(private val context: Context) {
             context.unregisterReceiver(broadcastReceiver)
             Log.d(TAG, "WiFiDirectManager cleaned up")
         } catch (e: Exception) {
-            //already unregistered
+            // already unregistered
         }
     }
 }
 
 /**
- * BroadcastReceiver for WiFi Direct events.
+ * Broadcast receiver for WiFi Direct events.
+ * @param manager The WiFi Direct manager.
  */
 class WiFiDirectBroadcastReceiver(private val manager: WiFiDirectManager) : BroadcastReceiver() {
 
+    /**
+     * Constants for logging and debugging.
+     */
     companion object {
         private const val TAG = "WiFiDirect-BR"
     }
 
+    /**
+     * Handles incoming broadcast intents.
+     * @param context The application context.
+     * @param intent The broadcast intent.
+     */
     override fun onReceive(context: Context?, intent: Intent?) {
-        Log.d(TAG, "Broadcast received: ${intent?.action}")
-
         when (intent?.action) {
             WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION -> {
                 val state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1)
-                Log.d(TAG, "WiFi P2P state: $state")
+                Log.d(TAG, "WiFi P2P State: $state")
+            }
+
+            WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION -> {
+                val connInfoExtra = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent?.getParcelableExtra(
+                        WifiP2pManager.EXTRA_WIFI_P2P_INFO,
+                        WifiP2pInfo::class.java
+                    )
+                } else {
+                    @Suppress("DEPRECATION") //Suppress deprecation warning
+                    intent?.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_INFO)
+                }
+                connInfoExtra?.let { manager.updateConnectionInfo(it) }
             }
 
             WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION -> {
-                //Peer list changed
                 val peersExtra = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     intent?.getParcelableExtra(
                         WifiP2pManager.EXTRA_P2P_DEVICE_LIST,
@@ -258,20 +302,6 @@ class WiFiDirectBroadcastReceiver(private val manager: WiFiDirectManager) : Broa
                 peersExtra?.let { manager.updatePeerList(it) }
             }
 
-            WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION -> {
-                //Connection state changed
-                val connInfoExtra = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    intent?.getParcelableExtra(
-                        WifiP2pManager.EXTRA_WIFI_P2P_INFO,
-                        WifiP2pInfo::class.java
-                    )
-                } else {
-                    @Suppress("DEPRECATION")
-                    intent?.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_INFO)
-                }
-                connInfoExtra?.let { manager.updateConnectionInfo(it) }
-            }
-
             WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION -> {
                 val device = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     intent?.getParcelableExtra(
@@ -282,7 +312,7 @@ class WiFiDirectBroadcastReceiver(private val manager: WiFiDirectManager) : Broa
                     @Suppress("DEPRECATION")
                     intent?.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE)
                 }
-                Log.d(TAG, "This device: ${device?.deviceName}")
+                device?.let { manager.updateThisDevice(it) }
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.example.chopchoprecipeapp.ui
 
 import android.net.wifi.p2p.WifiP2pDevice
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,7 +43,11 @@ import com.example.chopchoprecipeapp.data.Recipe
 import com.example.chopchoprecipeapp.wifidirect.TransferStatus
 
 /**
- * Screen to select a peer device and send a recipe via WiFi Direct.
+ * Screen to select a peer device and send a recipe via WiFi direct.
+ * @param recipe the recipe to send
+ * @param viewModel the view model to handle the WiFi direct operations
+ * @param onBackClick callback when navigating back
+ * @param modifier the modifier to apply to this layout
  * @author Amelie Dzierzawa
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,35 +61,55 @@ fun PeerListScreen(
     val availablePeers by viewModel.availablePeers.collectAsState()
     val isDiscovering by viewModel.isDiscovering.collectAsState()
     val transferStatus by viewModel.transferStatus.collectAsState()
-    val connectionInfo by viewModel.connectionInfo.collectAsState()  // ✨ Neu
+    val transferError by viewModel.transferError.collectAsState()
+    val thisDevice by viewModel.thisDevice.collectAsState()
+
+    //retrieve the active peers IP address determined via handshake
+    val peerIpAddress by viewModel.peerIpAddress.collectAsState()
 
     var selectedPeer by remember { mutableStateOf<WifiP2pDevice?>(null) }
     var showConfirmDialog by remember { mutableStateOf(false) }
     var isConnecting by remember { mutableStateOf(false) }
 
-    //auto-start discovery on enter
+    //Start discovery when the screen is shown
     LaunchedEffect(Unit) {
         viewModel.startDiscovery()
     }
 
-    LaunchedEffect(connectionInfo, isConnecting) {
-        if (isConnecting && connectionInfo?.groupFormed == true && selectedPeer != null) {
+    //Filters the own device out
+    val otherPeers = availablePeers.filter { peer ->
+        val isOwnDevice = peer.deviceAddress == thisDevice?.deviceAddress
+
+        !isOwnDevice &&
+                peer.status == WifiP2pDevice.AVAILABLE &&
+                !peer.deviceName.contains("unknown", ignoreCase = true)
+    }
+
+    //Triggers sending once the background handshake establishes the target peer IP
+    LaunchedEffect(peerIpAddress, isConnecting) {
+        val activeIp = peerIpAddress
+        if (isConnecting && !activeIp.isNullOrEmpty() && selectedPeer != null) {
             isConnecting = false
-            val hostAddress = connectionInfo?.groupOwnerAddress?.hostAddress ?: "192.168.49.1"
-            viewModel.sendRecipeToPeer(recipe, hostAddress)
+            Log.d("PeerList", "Sending to: ${selectedPeer?.deviceName} at $activeIp")
+            viewModel.sendRecipeToPeer(recipe, activeIp)
         }
     }
 
-    //when transfer succeeds, go back
+    //Reset connection state if an error occurs
+    LaunchedEffect(transferError) {
+        if (transferError != null) {
+            isConnecting = false
+        }
+    }
+
+    //Reset connection state if the transfer is successful
     LaunchedEffect(transferStatus) {
         if (transferStatus == TransferStatus.SentSuccess) {
-            //cleanup
-            viewModel.stopDiscovery()
             onBackClick()
         }
     }
 
-    //cleanup on leave
+    //Stop discovery when the screen is hidden
     DisposableEffect(Unit) {
         onDispose {
             viewModel.stopDiscovery()
@@ -100,6 +125,7 @@ fun PeerListScreen(
                 Button(
                     onClick = {
                         showConfirmDialog = false
+                        Log.d("PeerList", "Connecting to: ${selectedPeer?.deviceName} (${selectedPeer?.deviceAddress})")
                         viewModel.connectToPeer(selectedPeer!!)
                         isConnecting = true
                     }
@@ -142,16 +168,41 @@ fun PeerListScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            // Status Message
+            if (transferError != null) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp)
+                    ) {
+                        Text(
+                            "Error: ${transferError ?: ""}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        TextButton(
+                            onClick = { viewModel.clearError() },
+                            modifier = Modifier.align(Alignment.End)
+                        ) {
+                            Text("Dismiss")
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
             when {
                 isConnecting -> {
                     Text(
-                        "Connecting to device...",
+                        "Connecting to device and exchanging IP...",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
-
                 transferStatus == TransferStatus.Idle -> {
                     if (isDiscovering) {
                         Text(
@@ -165,7 +216,6 @@ fun PeerListScreen(
                         )
                     }
                 }
-
                 transferStatus == TransferStatus.Sending -> {
                     Text(
                         "Sending...",
@@ -173,7 +223,6 @@ fun PeerListScreen(
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
-
                 transferStatus == TransferStatus.SentSuccess -> {
                     Text(
                         "Recipe sent successfully!",
@@ -181,24 +230,14 @@ fun PeerListScreen(
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
-
-                transferStatus == TransferStatus.SentFailed -> {
-                    Text(
-                        "Failed to send recipe",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-
                 else -> {}
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (availablePeers.isEmpty() && !isDiscovering) {
+            if (otherPeers.isEmpty() && !isDiscovering) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize(),
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(
@@ -215,7 +254,7 @@ fun PeerListScreen(
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(availablePeers) { peer ->
+                    items(otherPeers) { peer ->
                         PeerCard(
                             peer = peer,
                             isSelected = selectedPeer?.deviceAddress == peer.deviceAddress,
@@ -231,6 +270,13 @@ fun PeerListScreen(
     }
 }
 
+/**
+ * A composable function that displays a card for a peer device.
+ * @param peer the peer device to display
+ * @param isSelected whether the card is selected
+ * @param onClick the action to perform when the card is clicked
+ * @author Amelie Dzierzawa
+ */
 @Composable
 fun PeerCard(
     peer: WifiP2pDevice,

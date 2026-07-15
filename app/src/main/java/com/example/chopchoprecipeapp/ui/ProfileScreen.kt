@@ -124,7 +124,7 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Name TextField
+        //Name TextField
         OutlinedTextField(
             value = userName,
             onValueChange = { viewModel.onUserNameChanged(it) },
@@ -137,7 +137,7 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        //dark Mode Toggle
+        //dark Mode toggle
         Row(
             modifier = Modifier
                 .fillMaxWidth()

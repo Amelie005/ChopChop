@@ -9,7 +9,7 @@ import java.io.FileOutputStream
 import java.util.UUID
 
 /**
- * Utility for managing recipe images.
+ * For managing recipe images.
  * @author Amelie Dzierzawa
  */
 object ImageManager {
@@ -17,6 +17,8 @@ object ImageManager {
     /**
      * Saves an image from a URI to the app's internal storage.
      * Returns the local file path as a string.
+     * @param context The application context.
+     * @param sourceUri The URI of the image to save.
      */
     fun saveImageFromUri(context: Context, sourceUri: Uri): String? {
         return try {
@@ -41,6 +43,8 @@ object ImageManager {
     /**
      * Saves a bitmap to the app's internal storage.
      * Returns the local file path as a string.
+     * @param context The application context.
+     * @param bitmap The bitmap to save.
      */
     fun saveBitmap(context: Context, bitmap: Bitmap): String? {
         return try {
@@ -61,6 +65,7 @@ object ImageManager {
 
     /**
      * Deletes an image file by path.
+     * @param imagePath The local path of the image file.
      */
     fun deleteImage(imagePath: String?) {
         if (!imagePath.isNullOrEmpty()) {
@@ -72,6 +77,11 @@ object ImageManager {
         }
     }
 
+    /**
+     * Gets a content URI for an image file.
+     * @param context The application context.
+     * @param imagePath The local path of the image file.
+     */
     fun getImageUri(context: Context, imagePath: String): Uri {
         return FileProvider.getUriForFile(
             context,

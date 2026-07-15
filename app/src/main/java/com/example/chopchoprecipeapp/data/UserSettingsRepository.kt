@@ -16,7 +16,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
  * Repository class that handles persisting and fetching user settings such as
  * dark mode preference, user name, and profile image path.
  *
- * @property context The application context to access DataStore.
+ * @property context The application context to access DataStore
  * @author Amelie Dzierzawa
  */
 class UserSettingsRepository(private val context: Context) {
@@ -50,6 +50,7 @@ class UserSettingsRepository(private val context: Context) {
 
     /**
      * Saves the dark mode preference.
+     * @param enabled Whether dark mode is enabled or not
      */
     suspend fun saveDarkMode(enabled: Boolean) {
         context.dataStore.edit { preferences ->
@@ -59,6 +60,7 @@ class UserSettingsRepository(private val context: Context) {
 
     /**
      * Saves the user's name.
+     * @param name The user's name
      */
     suspend fun saveUserName(name: String) {
         context.dataStore.edit { preferences ->
@@ -68,6 +70,7 @@ class UserSettingsRepository(private val context: Context) {
 
     /**
      * Saves the local file path of the profile image.
+     * @param path The local file path of the profile image
      */
     suspend fun saveProfileImagePath(path: String?) {
         context.dataStore.edit { preferences ->

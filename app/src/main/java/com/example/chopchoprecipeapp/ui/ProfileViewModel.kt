@@ -30,6 +30,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     /**
      * Toggles and persists the dark mode setting.
+     * @param enabled The new dark mode state
      */
     fun onDarkModeChanged(enabled: Boolean) {
         viewModelScope.launch {
@@ -39,6 +40,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     /**
      * Updates and persists the user name.
+     * @param name The new user name
      */
     fun onUserNameChanged(name: String) {
         viewModelScope.launch {
@@ -48,6 +50,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     /**
      * Updates and persists the local path of the profile image.
+     * @param path The new local path of the profile image
      */
     fun onProfileImageChanged(path: String?) {
         viewModelScope.launch {

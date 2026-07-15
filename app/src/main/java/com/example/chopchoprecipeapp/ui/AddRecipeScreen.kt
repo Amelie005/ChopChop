@@ -17,10 +17,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -44,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.chopchoprecipeapp.data.Recipe
@@ -76,22 +81,53 @@ fun AddRecipeScreen(
     var ratingString by remember { mutableStateOf("5") }
     var tagsString by remember { mutableStateOf("") }
     var instructions by remember { mutableStateOf("") }
-
-    //image
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var submitted by remember { mutableStateOf(false) }
 
-    //dynamic list of ingredients
     val ingredientsList = remember { mutableStateListOf(IngredientInput()) }
 
-    //list of allowed metrics
-    val metricUnits = listOf("g", "kg", "ml", "l", "pc.", "ts", "tbs", "pich", "cup", "ounce")
+    val metricUnits = listOf(
+        "g", "kg", "ml", "l",
+        "oz", "lb", "cup", "tbsp", "tsp", "fl oz",
+        "Stk.", "pcs"
+    )
 
-    //launcher for the android image gallery
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         selectedImageUri = uri
     }
+
+    //validation, only shown if submitted is true
+    val nameError = when {
+        name.isBlank() -> "Recipe name is required!"
+        name.length > 500 -> "Recipe name too long (max 500 characters)!"
+        else -> null
+    }
+
+    val ratingError = when {
+        ratingString.toIntOrNull() == null -> "Invalid rating!"
+        ratingString.toInt() !in 1..5 -> "Rating must be between 1 and 5!"
+        else -> null
+    }
+
+    val ingredientsError = when {
+        ingredientsList.all { it.name.isBlank() } -> "Add at least one ingredient!"
+        else -> null
+    }
+
+    val amountErrors = ingredientsList.mapIndexed { index, ingredient ->
+        if (ingredient.amount.isNotBlank() && ingredient.amount.toDoubleOrNull() == null) {
+            index to "Only numbers allowed!"
+        } else {
+            null
+        }
+    }.filterNotNull()
+
+    val isFormValid = nameError == null &&
+            ratingError == null &&
+            ingredientsError == null &&
+            amountErrors.isEmpty()
 
     LazyColumn(
         modifier = modifier
@@ -103,26 +139,24 @@ fun AddRecipeScreen(
             Text("Add New Recipe", style = MaterialTheme.typography.headlineMedium)
         }
 
-        //Image Selection
+        //image Selection (optional)
         item {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(1f) //image as square
-                    .clickable { imagePickerLauncher.launch("image/*") }, //click on image opens gallery
+                    .aspectRatio(1f)
+                    .clickable { imagePickerLauncher.launch("image/*") },
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                shape = MaterialTheme.shapes.medium //rounded edges
+                shape = MaterialTheme.shapes.medium
             ) {
                 if (selectedImageUri != null) {
-                    //shows selected image
                     AsyncImage(
                         model = selectedImageUri,
                         contentDescription = "Chosen Recipe Image",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop //cuts image without distortion
+                        contentScale = ContentScale.Crop
                     )
                 } else {
-                    //placeholder if no image is selected
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -130,125 +164,226 @@ fun AddRecipeScreen(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(
                                 imageVector = Icons.Default.PhotoCamera,
-                                contentDescription = "Add Photo",
-                                modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.primary
+                                contentDescription = "Add image",
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                "Choose Image From Gallery",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+                            Text("Choose Image From Gallery", style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                 }
             }
         }
 
-        //Basic data
+        //Recipe name
         item {
             OutlinedTextField(
                 value = name,
-                onValueChange = { name = it },
+                onValueChange = { if (it.length <= 500) name = it },
                 label = { Text("Recipe Name") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                isError = submitted && nameError != null,
+                supportingText = {
+                    if (submitted && nameError != null) {
+                        Text(nameError, color = MaterialTheme.colorScheme.error)
+                    } else {
+                        Text("${name.length}/500", style = MaterialTheme.typography.labelSmall)
+                    }
+                }
             )
         }
 
+        //Rating (selection via stars)
         item {
-            OutlinedTextField(
-                value = ratingString,
-                onValueChange = { ratingString = it },
-                label = { Text("Rating (1-5)") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text("Rating", style = MaterialTheme.typography.bodyMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    repeat(5) { index ->
+                        IconButton(
+                            onClick = { ratingString = (index + 1).toString() },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = "Star ${index + 1}",
+                                tint = if (index < (ratingString.toIntOrNull() ?: 0))
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.surfaceVariant,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                    }
+                }
+                if (submitted && ratingError != null) {
+                    Text(
+                        ratingError,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
         }
 
+        //Tags
         item {
             OutlinedTextField(
                 value = tagsString,
                 onValueChange = { tagsString = it },
-                label = { Text("Tags (seperated by Komma, z.B. Veggie, Quick)") },
-                modifier = Modifier.fillMaxWidth()
+                label = { Text("Tags (comma separated)") },
+                modifier = Modifier.fillMaxWidth(),
+                supportingText = { Text("e.g. Vegetarian, Quick, Healthy") }
             )
         }
 
-        //Ingredient section
+        //Ingredients
         item {
             Text("Ingredients", style = MaterialTheme.typography.titleMedium)
         }
 
         itemsIndexed(ingredientsList) { index, ingredient ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(IntrinsicSize.Min),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = ingredient.amount,
-                    onValueChange = { ingredientsList[index] = ingredient.copy(amount = it) },
-                    placeholder = { Text("Amount") },
-                    modifier = Modifier
-                        .weight(0.7f)
-                        .fillMaxHeight(),
-                    maxLines = 1
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
                 )
-
-                var expanded by remember { mutableStateOf(false) }
-
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = !expanded },
+            ) {
+                Column(
                     modifier = Modifier
-                        .weight(1.1f)
-                        .fillMaxHeight()
+                        .fillMaxWidth()
+                        .padding(12.dp)
                 ) {
-                    OutlinedTextField(
-                        value = ingredient.unit,
-                        onValueChange = {},
-                        readOnly = true,
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                    Row(
                         modifier = Modifier
-                            .menuAnchor()
-                            .fillMaxHeight(),
-                        maxLines = 1
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        metricUnits.forEach { unitOption ->
-                            DropdownMenuItem(
-                                text = { Text(unitOption) },
-                                onClick = {
-                                    ingredientsList[index] = ingredient.copy(unit = unitOption)
-                                    expanded = false
+                        //Amount
+                        OutlinedTextField(
+                            value = ingredient.amount,
+                            onValueChange = { newValue ->
+                                if (newValue.isEmpty() || newValue.all { it.isDigit() || it == '.' }) {
+                                    ingredientsList[index] = ingredient.copy(amount = newValue)
                                 }
+                            },
+                            placeholder = { Text("AMT") },
+                            modifier = Modifier
+                                .weight(0.6f)
+                                .fillMaxHeight(),
+                            maxLines = 1,
+                            isError = submitted && amountErrors.any { it.first == index },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            textStyle = MaterialTheme.typography.bodyMedium
+                        )
+
+                        //Unit
+                        var expanded by remember { mutableStateOf(false) }
+
+                        ExposedDropdownMenuBox(
+                            expanded = expanded,
+                            onExpandedChange = { expanded = !expanded },
+                            modifier = Modifier
+                                .weight(0.9f)
+                                .fillMaxHeight()
+                        ) {
+                            OutlinedTextField(
+                                value = ingredient.unit,
+                                onValueChange = {},
+                                readOnly = true,
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                                modifier = Modifier
+                                    .menuAnchor()
+                                    .fillMaxHeight(),
+                                maxLines = 1,
+                                textStyle = MaterialTheme.typography.bodyMedium
                             )
+                            ExposedDropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false }
+                            ) {
+                                metricUnits.forEach { unitOption ->
+                                    DropdownMenuItem(
+                                        text = { Text(unitOption) },
+                                        onClick = {
+                                            ingredientsList[index] = ingredient.copy(unit = unitOption)
+                                            expanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        //Ingredient name
+                        OutlinedTextField(
+                            value = ingredient.name,
+                            onValueChange = { ingredientsList[index] = ingredient.copy(name = it) },
+                            placeholder = { Text("Ingredient") },
+                            modifier = Modifier
+                                .weight(1.5f)
+                                .fillMaxHeight(),
+                            maxLines = 1,
+                            textStyle = MaterialTheme.typography.bodyMedium
+                        )
+
+                        //Delete button
+                        if (ingredientsList.size > 1) {
+                            IconButton(
+                                onClick = { ingredientsList.removeAt(index) },
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .width(48.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = "Delete ingredient",
+                                    tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
                         }
                     }
-                }
 
-                OutlinedTextField(
-                    value = ingredient.name,
-                    onValueChange = { ingredientsList[index] = ingredient.copy(name = it) },
-                    placeholder = { Text("Ingredient") },
-                    modifier = Modifier
-                        .weight(1.6f)
-                        .fillMaxHeight(),
-                    maxLines = 1
-                )
-
-                if (ingredientsList.size > 1) {
-                    IconButton(
-                        onClick = { ingredientsList.removeAt(index) },
-                        modifier = Modifier.fillMaxHeight()
-                    ) {
-                        Text("X", color = MaterialTheme.colorScheme.error)
+                    //Error message below
+                    if (submitted && amountErrors.any { it.first == index }) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            "Only numbers allowed!",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
                     }
+                }
+            }
+        }
+
+        //Ingredients error
+        if (submitted && ingredientsError != null) {
+            item {
+                Text(
+                    ingredientsError,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+
+        //Amount errors
+        if (submitted) {
+            amountErrors.forEach { (index, error) ->
+                item {
+                    Text(
+                        "Ingredient ${index + 1}: $error",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
             }
         }
@@ -278,7 +413,10 @@ fun AddRecipeScreen(
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = {
-                    if (name.isNotBlank()) {
+
+                    submitted = true
+
+                    if (isFormValid) {
                         val tagsList = tagsString.split(",")
                             .map { it.trim() }
                             .filter { it.isNotBlank() }
@@ -286,10 +424,8 @@ fun AddRecipeScreen(
                         val filteredIngredients = ingredientsList
                             .filter { it.name.isNotBlank() }
                             .map { input ->
-                                val amountPart =
-                                    if (input.amount.isNotBlank()) "${input.amount} " else ""
-                                val unitPart =
-                                    if (input.unit.isNotBlank() && input.amount.isNotBlank()) "${input.unit} " else ""
+                                val amountPart = if (input.amount.isNotBlank()) "${input.amount} " else ""
+                                val unitPart = if (input.unit.isNotBlank() && input.amount.isNotBlank()) "${input.unit} " else ""
                                 "$amountPart$unitPart${input.name}".trim()
                             }
 
@@ -313,11 +449,14 @@ fun AddRecipeScreen(
                         onRecipeSaved()
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = name.isNotBlank()
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Save Recipe")
             }
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

@@ -31,7 +31,7 @@ fun RequestWiFiDirectPermissions() {
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { results ->
-        // Permissions granted/denied
+        //Permissions granted/denied
     }
 
     LaunchedEffect(Unit) {
