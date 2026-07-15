@@ -85,6 +85,11 @@ class WiFiDirectManager(private val context: Context) {
      *
      */
     fun discoverPeers() {
+
+        Log.d(TAG, "discoverPeers() called")
+
+        stopDiscovery()
+
         if (ActivityCompat.checkSelfPermission(
                 context,
                 android.Manifest.permission.ACCESS_FINE_LOCATION
@@ -196,8 +201,12 @@ class WiFiDirectManager(private val context: Context) {
         wifiP2pManager.removeGroup(channel, object : WifiP2pManager.ActionListener {
             override fun onSuccess() {
                 Log.d(TAG, "Disconnected")
+
                 _isConnected.value = false
                 _connectionInfo.value = null
+                _availablePeers.value = emptyList()
+
+                discoverPeers()
             }
 
             override fun onFailure(reasonCode: Int) {
@@ -247,12 +256,27 @@ class WiFiDirectManager(private val context: Context) {
      * Cleans up resources.
      */
     fun cleanup() {
+        disconnect()      // <- Gruppe auflösen
         stopDiscovery()
+
         try {
             context.unregisterReceiver(broadcastReceiver)
-            Log.d(TAG, "WiFiDirectManager cleaned up")
         } catch (e: Exception) {
             // already unregistered
+        }
+    }
+
+    fun requestPeers() {
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
+        wifiP2pManager.requestPeers(channel) { peers ->
+            updatePeerList(peers)
         }
     }
 }
@@ -305,7 +329,7 @@ class WiFiDirectBroadcastReceiver(private val manager: WiFiDirectManager) : Broa
                     @Suppress("DEPRECATION")
                     intent?.getParcelableExtra(WifiP2pManager.EXTRA_P2P_DEVICE_LIST)
                 }
-                peersExtra?.let { manager.updatePeerList(it) }
+                manager.requestPeers()
             }
 
             WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION -> {

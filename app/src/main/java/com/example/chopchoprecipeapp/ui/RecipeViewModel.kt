@@ -86,6 +86,19 @@ class RecipeViewModel(
                 }
             }
         }
+
+        viewModelScope.launch {
+            transferService.transferStatus.collect { status ->
+                when (status) {
+                    TransferStatus.SentSuccess,
+                    TransferStatus.ReceivedSuccess -> {
+                        wifiDirectManager.disconnect()
+
+                    }
+                    else -> {}
+                }
+            }
+        }
     }
 
     /**
