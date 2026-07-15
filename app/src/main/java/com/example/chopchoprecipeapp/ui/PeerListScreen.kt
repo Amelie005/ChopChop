@@ -150,14 +150,6 @@ fun PeerListScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                },
-                actions = {
-                    IconButton(
-                        onClick = { viewModel.startDiscovery() },
-                        enabled = !isDiscovering
-                    ) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Refresh")
-                    }
                 }
             )
         }
