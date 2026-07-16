@@ -3,7 +3,7 @@
   <component name="deploymentTargetSelector">
     <selectionStates>
       <SelectionState runConfigName="app">
-        <option name="selectionMode" value="DIALOG" />
+        <option name="selectionMode" value="DROPDOWN" />
         <DropdownSelection timestamp="2026-07-16T09:41:52.319685200Z">
           <Target type="DEFAULT_BOOT">
             <handle>
@@ -72,9 +72,9 @@
           </targets>
         </DialogSelection>
       </SelectionState>
-      <SelectionState runConfigName="testRecipeCreation()">
+      <SelectionState runConfigName="RecipeDAOTest">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-07-16T09:40:45.184606800Z">
+        <DropdownSelection timestamp="2026-06-26T15:36:45.250912500Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="PhysicalDevice" identifier="serial=00166152F003365" />
@@ -83,9 +83,9 @@
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="RecipeDAOTest">
+      <SelectionState runConfigName="RecipeViewModelTest">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-06-26T15:36:45.250912500Z">
+        <DropdownSelection timestamp="2026-07-16T09:40:45.184606800Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="PhysicalDevice" identifier="serial=00166152F003365" />

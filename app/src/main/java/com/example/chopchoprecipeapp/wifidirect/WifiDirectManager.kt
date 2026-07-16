@@ -319,7 +319,7 @@ class WiFiDirectBroadcastReceiver(private val manager: WiFiDirectManager) : Broa
      * Constants for logging and debugging.
      */
     companion object {
-        private const val TAG = "WiFiDirect-BR"
+        private const val TAG = "WiFiDirectBR"
     }
 
     /**

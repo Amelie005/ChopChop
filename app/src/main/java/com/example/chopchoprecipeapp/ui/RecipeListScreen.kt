@@ -281,7 +281,7 @@ fun RecipeCardWithSwipe(
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    // Manage state for the swipe-to-dismiss box
+    //Manage state for the swipe to dismiss box
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { dismissValue ->
             if (dismissValue == SwipeToDismissBoxValue.StartToEnd) {
@@ -413,7 +413,7 @@ fun RecipeCard(
                     .padding(16.dp)
                     .fillMaxWidth()
             ) {
-                //Name and Rating
+                //Name and rating
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,

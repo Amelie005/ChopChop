@@ -31,7 +31,7 @@ private val DarkColorScheme = darkColorScheme(
     onSurfaceVariant = Color(0xFFA2B5A6),
     outline = Color(0xFF728576),
 
-    //Bottom Bar & Surface Containers for Dark Mode
+    //Bottom bar and surface containers for dark mode
     surfaceContainer = Color(0xFF121F17),
     surfaceContainerLow = Color(0xFF0E1912),
     surfaceContainerHigh = Color(0xFF1A2B20),
@@ -64,7 +64,7 @@ private val LightColorScheme = lightColorScheme(
     onSurfaceVariant = Color(0xFF4C5E51),
     outline = Color(0xFF7E9183),
 
-    //Bottom Bar & Surface Containers for Light Mode
+    //Bottom bar and surface containers for light mode
     surfaceContainer = Color(0xFFE4EBE5),
     surfaceContainerLow = Color(0xFFEAF1EC),
     surfaceContainerHigh = Color(0xFFDCE5DE),

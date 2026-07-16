@@ -6,7 +6,7 @@ import org.junit.Test
 
 class RecipeViewModelTest {
 
-    //TC-03: Recipe Data validation
+    //TC-03
     @Test
     fun testRecipeCreation() {
         val recipe = Recipe(

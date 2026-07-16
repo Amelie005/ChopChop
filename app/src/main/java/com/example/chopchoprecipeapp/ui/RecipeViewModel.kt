@@ -62,18 +62,18 @@ class RecipeViewModel(
             }
         }
 
-        //Handle automatic handshake and IP exchange
+        //handle automatic handshake and ip exchange
         viewModelScope.launch {
             wifiDirectManager.connectionInfo.collect { info ->
                 if (info != null && info.groupFormed) {
                     if (info.isGroupOwner) {
-                        Log.d("RecipeVM", "We are Group Owner. Waiting for Client's Handshake...")
+                        Log.d("RecipeVM", "We are Group Owner. Waiting for Clients Handshake...")
                     } else {
                         val ownerAddress = info.groupOwnerAddress?.hostAddress
                         if (ownerAddress != null) {
                             Log.d(
                                 "RecipeVM",
-                                "We are Client. GO IP is: $ownerAddress. Initiating Handshake..."
+                                "We are Client. Group Owner IP is: $ownerAddress. Initiating Handshake..."
                             )
                             transferService.setPeerIpAddress(ownerAddress)
                             //let the group owner know our IP address
@@ -81,7 +81,7 @@ class RecipeViewModel(
                         }
                     }
                 } else {
-                    //Reset peer IP if disconnected
+                    //Reset peer ip if disconnected
                     transferService.setPeerIpAddress(null)
                 }
             }
@@ -170,7 +170,7 @@ class RecipeViewModel(
         if (!targetIp.isNullOrEmpty()) {
             transferService.sendRecipe(recipe, targetIp)
         } else {
-            Log.e("RecipeVM", "No active peer IP connected to send recipe!")
+            Log.e("RecipeVM", "No active peer IP connected to send recipe.")
         }
     }
 
@@ -212,7 +212,7 @@ class RecipeViewModel(
      */
     fun editRecipe(recipe: Recipe) {
         viewModelScope.launch {
-            repository.insert(recipe) // Overwrites the existing recipe
+            repository.insert(recipe) //Overwrites the existing recipe
             _selectedRecipe.value = recipe
         }
     }

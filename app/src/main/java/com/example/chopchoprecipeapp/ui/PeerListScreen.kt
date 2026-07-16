@@ -58,6 +58,7 @@ fun PeerListScreen(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+
     val availablePeers by viewModel.availablePeers.collectAsState()
     val isDiscovering by viewModel.isDiscovering.collectAsState()
     val transferStatus by viewModel.transferStatus.collectAsState()
@@ -69,7 +70,7 @@ fun PeerListScreen(
     var showConfirmDialog by remember { mutableStateOf(false) }
     var isConnecting by remember { mutableStateOf(false) }
 
-    // Start discovery on composition and stop on dispose
+    //start discovery on composition and stop on dispose
     DisposableEffect(Unit) {
         viewModel.startDiscovery()
         onDispose {
@@ -77,11 +78,11 @@ fun PeerListScreen(
         }
     }
 
-    // Filter out the current device and invalid peers
+    //Filter out the current device and invalid peers
     val otherPeers = availablePeers.filter { peer ->
         val isOwnDevice = peer.deviceAddress == thisDevice?.deviceAddress
 
-        // Allow devices that are available, already connected, or currently invited
+        //Allow devices that are available, already connected, or currently invited
         val isValidStatus = peer.status in listOf(
             WifiP2pDevice.AVAILABLE,
             WifiP2pDevice.CONNECTED,
@@ -91,7 +92,7 @@ fun PeerListScreen(
         !isOwnDevice && isValidStatus && !peer.deviceName.isNullOrBlank()
     }
 
-    // Trigger sending once handshake establishes target peer IP
+    //trigger sending once handshake establishes target peer IP
     LaunchedEffect(peerIpAddress, isConnecting, selectedPeer) {
         val activeIp = peerIpAddress
         if (isConnecting && !activeIp.isNullOrEmpty() && selectedPeer != null) {
@@ -101,19 +102,19 @@ fun PeerListScreen(
         }
     }
 
-    // Reset connection state upon error
+    //Reset connection state upon error
     LaunchedEffect(transferError) {
         if (transferError != null) {
             isConnecting = false
         }
     }
 
-    // Ensure isConnecting is reset if an error occurs
+    //Ensure isConnecting is reset if an error occurs
     LaunchedEffect(transferStatus) {
         when (transferStatus) {
             TransferStatus.SentSuccess -> onBackClick()
             TransferStatus.SentFailed, TransferStatus.ErrorConnectionLost, TransferStatus.ErrorTimeout -> {
-                isConnecting = false // Reset UI state so user can retry
+                isConnecting = false //Reset UI state so user can retry
             }
             else -> {}
         }
@@ -196,7 +197,7 @@ fun PeerListScreen(
             when {
                 isConnecting -> {
                     Text(
-                        text = "Connecting to device and exchanging IP...",
+                        text = "Connecting to device...",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary
                     )

@@ -90,7 +90,7 @@ class RecipeTransferService(private val context: Context) {
                                         Log.d(TAG, "Handshake received from client: $clientIp")
                                         _peerIpAddress.value = clientIp
                                     } else {
-                                        Log.d(TAG, "Data payload received, processing recipe...")
+                                        Log.d(TAG, "Data received, processing recipe...")
                                         _transferStatus.value = TransferStatus.Receiving
                                         val recipe = RecipeTransfer.jsonToRecipe(firstLine, context)
                                         if (recipe != null) {
@@ -155,7 +155,7 @@ class RecipeTransferService(private val context: Context) {
     fun sendHandshake(hostAddress: String) {
         Thread {
             try {
-                Log.d(TAG, "Attempting to send handshake to GO: $hostAddress")
+                Log.d(TAG, "Attempting to send handshake to Group Owner: $hostAddress")
                 val socket = Socket(hostAddress, PORT)
                 socket.soTimeout = 5000
                 val writer = PrintWriter(socket.outputStream, true)
@@ -200,7 +200,7 @@ class RecipeTransferService(private val context: Context) {
                         Thread.sleep(500)
                         _transferStatus.value = TransferStatus.SentSuccess
                         _transferError.value = null
-                        Log.d(TAG, "Data transmitted successfully")
+                        Log.d(TAG, "Data transmitted successfully!")
                     } else {
                         _transferStatus.value = TransferStatus.SentFailed
                         _transferError.value = "Failed to write data"

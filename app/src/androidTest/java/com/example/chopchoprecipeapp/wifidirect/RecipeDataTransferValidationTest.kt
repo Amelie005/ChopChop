@@ -6,7 +6,7 @@ import org.junit.Test
 
 class RecipeTransferDataValidationTest {
 
-    //TC-04: Handshake Message Format
+    //TC-04
     @Test
     fun testHandshakeMessageFormat() {
         val handshakeMsg = "HANDSHAKE:192.168.49.2"
@@ -14,7 +14,7 @@ class RecipeTransferDataValidationTest {
         assertTrue(handshakeMsg.contains("192.168.49.2"))
     }
 
-    //TC-05: Recipe JSON Data Integrity
+    //TC-05
     @Test
     fun testRecipeDataIntegrity() {
         val recipe = Recipe(
@@ -46,7 +46,7 @@ class RecipeTransferDataValidationTest {
             imageUri = "/path/image.jpg"
         )
 
-        //Check all fields are present
+        //check that all fields are present
         assertNotNull(recipe.id)
         assertNotNull(recipe.name)
         assertNotNull(recipe.rating)
@@ -56,7 +56,7 @@ class RecipeTransferDataValidationTest {
         assertNotNull(recipe.imageUri)
     }
 
-    //TC-06: Error Handling, invalid data
+    //TC-06
     @Test
     fun testEmptyRecipeHandling() {
         val recipe = Recipe(

@@ -31,7 +31,7 @@ class RecipeDAOTest {
         database.close()
     }
 
-    //TC-01: Insert & Retrieve
+    //TC-01
     @Test
     fun testInsertAndRetrieveRecipe() = runBlocking {
         val recipe = Recipe(

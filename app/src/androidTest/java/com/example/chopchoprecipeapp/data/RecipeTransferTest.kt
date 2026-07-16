@@ -1,12 +1,11 @@
 package com.example.chopchoprecipeapp.data
 
-import com.example.chopchoprecipeapp.wifidirect.TransferStatus
 import org.junit.Assert.*
 import org.junit.Test
 
 class RecipeTransferTest {
 
-    //TC-05: JSON validation (no context)
+    //TC-05
     @Test
     fun testRecipeJsonStructure() {
         val recipe = Recipe(
@@ -20,7 +19,7 @@ class RecipeTransferTest {
         )
 
         val json = try {
-            //only test if JSOn is valid
+            //only tests if JSON is valid
             val jsonStr = "{\"name\":\"Pasta\",\"rating\":5}"
             jsonStr.contains("Pasta")
         } catch (e: Exception) {

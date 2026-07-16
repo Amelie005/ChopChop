@@ -4,17 +4,16 @@ import androidx.compose.ui.graphics.Color
 
 /**
  * Color palette definitions for the ChopChop App.
- * Uses green-themed color spectrum .
  * @author Amelie Dzierzawa
  */
 
-//Global Accent Colors
+//Global accent colors
 val SageLight = Color(0xFF3A6342)
 val SageMedium = Color(0xFF587E60)
 val SageDark = Color(0xFF24402A)
 val MutedRed = Color(0xFF9C3A3A)
 
-//Light Theme Palette
+//Light theme palette
 val PrimaryLight = SageLight
 val SecondaryLight = SageMedium
 val TertiaryLight = SageDark
@@ -24,7 +23,7 @@ val OnPrimaryLight = Color(0xFFFFFFFF)
 val OnBackgroundLight = Color(0xFF111E14)
 val OnSurfaceLight = Color(0xFF1D2F21)
 
-//Dark Theme Palette
+//Dark theme palette
 val PrimaryDark = Color(0xFFA2C9AB)
 val SecondaryDark = Color(0xFF7EA486)
 val TertiaryDark = Color(0xFFA4C3B2)

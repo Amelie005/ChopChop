@@ -8,10 +8,9 @@ import kotlinx.coroutines.flow.Flow
  */
 class RecipeRepository(private val recipeDao: RecipeDao) {
 
-    //exposes the list of recipes as a Flow
     val allRecipes: Flow<List<Recipe>> get() = recipeDao.getAllRecipes()
 
-    //suspend function ensures it runs off the main thread
+    //runs off the main thread
     /**
      * Inserts a recipe.
      * @param recipe the recipe to insert

@@ -74,6 +74,7 @@ fun AddRecipeScreen(
     onRecipeSaved: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+
     val context = LocalContext.current
 
     var name by remember { mutableStateOf("") }
@@ -138,7 +139,7 @@ fun AddRecipeScreen(
             Text("Add New Recipe", style = MaterialTheme.typography.headlineMedium)
         }
 
-        //image Selection (optional)
+        //image selection
         item {
             Card(
                 modifier = Modifier

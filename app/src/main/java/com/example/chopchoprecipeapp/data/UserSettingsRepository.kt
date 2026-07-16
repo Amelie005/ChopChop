@@ -13,9 +13,8 @@ import kotlinx.coroutines.flow.map
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_settings")
 
 /**
- * Repository class that handles persisting and fetching user settings such as
+ * Repository class that handles persisting and fetching user settings like
  * dark mode preference, user name, and profile image path.
- *
  * @property context The application context to access DataStore
  * @author Amelie Dzierzawa
  */

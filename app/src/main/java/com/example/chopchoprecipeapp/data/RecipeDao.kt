@@ -40,6 +40,4 @@ interface RecipeDao {
      */
     @Delete
     suspend fun deleteRecipe(recipe: Recipe)
-
-
 }
