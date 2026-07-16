@@ -241,6 +241,8 @@ fun AddRecipeScreen(
                 modifier = Modifier.fillMaxWidth(),
                 supportingText = { Text("e.g. Vegetarian, Quick, Healthy") }
             )
+
+
         }
 
         //Ingredients
@@ -421,8 +423,9 @@ fun AddRecipeScreen(
 
                     if (isFormValid) {
                         val tagsList = tagsString.split(",")
-                            .map { it.trim() }
+                            .map { it.trim().lowercase() }
                             .filter { it.isNotBlank() }
+                            .distinct()
 
                         val filteredIngredients = ingredientsList
                             .filter { it.name.isNotBlank() }
